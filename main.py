@@ -27,26 +27,38 @@ def create_app():
   log_info("Initialise Flask")
   return app
 
+db = mysql.connector.connect(
+        host="my-dbs-bp0.bristol.ac.uk",
+        user="qy18694",
+        password="Moocow21extended_",
+        port=4407,
+        database="wyndhurstfarm"
+      )
+log_info("Initialise database connection")
+cursor = db.cursor(prepared=True)
+
 if __name__=='main':
   app = create_app()
-
-db = mysql.connector.connect(
-				host="my-dbs-bp0.bristol.ac.uk",
-				user="qy18694",
-				password="Moocow21extended_",
-				port=4407,
-				database="wyndhurstfarm"
-			)
-log_info("Initialise database connection")
-  
-cursor = db.cursor(prepared=True)
 
 @app.route("/cows")
 def cows_route():
   log_info("Receive request: /cows")
   req_begin = datetime.now()
-  cursor.execute("SELECT DISTINCT cow_ID FROM data ORDER BY cow_ID")
-  cows = cursor.fetchall()
+  try:
+    cursor.execute("SELECT DISTINCT cow_ID FROM data ORDER BY cow_ID")
+    cows = cursor.fetchall()
+  except:
+    db = mysql.connector.connect(
+        host="my-dbs-bp0.bristol.ac.uk",
+        user="qy18694",
+        password="Moocow21extended_",
+        port=4407,
+        database="wyndhurstfarm"
+      )
+    log_info("Initialise database connection")
+    cursor = db.cursor(prepared=True)
+    cursor.execute("SELECT DISTINCT cow_ID FROM data ORDER BY cow_ID")
+    cows = cursor.fetchall()
   req_end = datetime.now()
   timedelta = req_end - req_begin
   log_info("Request resolve: " + str(timedelta.microseconds / 1000) + " miliseconds")
@@ -61,6 +73,19 @@ def data_route():
   min_time = (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
   query_params = cow_list
   query = "SELECT cx, cy, angle, detect_timestamp FROM data WHERE detect_timestamp BETWEEN '" + str(min_time) + " 00:00:00' AND '" + str(max_time) +" 00:00:00' AND cow_ID IN ({c})".format(c=', '.join(['%s'] * len(cow_list)))
-  cursor.execute(query, query_params)
-  data = cursor.fetchall()
+  try:
+    cursor.execute(query, query_params)
+    data = cursor.fetchall()
+  except:
+    db = mysql.connector.connect(
+        host="my-dbs-bp0.bristol.ac.uk",
+        user="qy18694",
+        password="Moocow21extended_",
+        port=4407,
+        database="wyndhurstfarm"
+      )
+    log_info("Initialise database connection")
+    cursor = db.cursor(prepared=True)
+    cursor.execute(query, query_params)
+    data = cursor.fetchall()
   return jsonify(data)
