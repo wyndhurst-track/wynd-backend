@@ -67,12 +67,12 @@ def cows_route():
 @app.route("/data")
 def data_route():
   cow_header = request.headers.get("cow-list")
-  log_info("Recieve request: /data " + cow_header)
+  start_time = datetime.fromtimestamp(int(request.headers.get("start-time"))/1000).strftime("%Y-%m-%d")
+  end_time = datetime.fromtimestamp(int(request.headers.get("end-time"))/1000).strftime("%Y-%m-%d")
+  log_info("Recieve request: /data " + cow_header + " " + start_time + " " + end_time)
   cow_list = cow_header.strip("[]").split(",")
-  max_time = datetime.today().strftime("%Y-%m-%d")
-  min_time = (datetime.today() - timedelta(days=1)).strftime("%Y-%m-%d")
   query_params = cow_list
-  query = "SELECT cx, cy, angle, detect_timestamp FROM data WHERE detect_timestamp BETWEEN '" + str(min_time) + " 00:00:00' AND '" + str(max_time) +" 00:00:00' AND cow_ID IN ({c})".format(c=', '.join(['%s'] * len(cow_list)))
+  query = "SELECT cow_ID, cx, cy, angle, detect_timestamp FROM data WHERE detect_timestamp BETWEEN '" + str(start_time) + " 00:00:00' AND '" + str(end_time) +" 00:00:00' AND cow_ID IN ({c})".format(c=', '.join(['%s'] * len(cow_list)))
   try:
     cursor.execute(query, query_params)
     data = cursor.fetchall()
