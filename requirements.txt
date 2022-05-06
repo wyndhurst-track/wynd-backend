@@ -1,3 +1,9 @@
 Flask==2.0.3
 Flask_Cors==3.0.10
 mysql_connector_repackaged==0.3.1
+mysql
+mysql-connector-python
+mysqlclient
+gunicorn
+bs4
+html5lib
